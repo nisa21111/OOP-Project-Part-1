@@ -403,6 +403,7 @@ class menu{
         void setupPlayer();
         void managePlayerItems();
         void startDuel();
+        void displayLogo();
         void displayAvailableChampions();
         void displayAvailableItems();
     public:
@@ -517,6 +518,16 @@ void menu::managePlayerItems(){
         std::cout<<"Index item invalid. \n";
     }
 }
+void menu::displayLogo(){
+    std::cout << R"(
+    __    ____  __       __  ___      __       __                   ___                __                     
+   / /   / __ \/ /      /  |/  /___ _/ /______/ /_  __  ______     /   |  ____  ____ _/ /_  ______  ___  _____
+  / /   / / / / /      / /|_/ / __ `/ __/ ___/ __ \/ / / / __ \   / /| | / __ \/ __ `/ / / / /_  / / _ \/ ___/
+ / /___/ /_/ / /___   / /  / / /_/ / /_/ /__/ / / / /_/ / /_/ /  / ___ |/ / / / /_/ / / /_/ / / /_/  __/ /    
+/_____/\____/_____/  /_/  /_/\__,_/\__/\___/_/ /_/\__,_/ .___/  /_/  |_/_/ /_/\__,_/_/\__, / /___/\___/_/     
+                                                      /_/                            /____/                   
+)"<<std::endl;
+}
 
 void menu::startDuel(){
     if (p1==nullptr || p2==nullptr){
@@ -527,9 +538,10 @@ void menu::startDuel(){
 }
 
 void menu::run(){
+    displayLogo();
     int option =-1;
     while (option !=0){
-        std::cout<<"\n=== LOL MATCHUP ANALYZER ===\n";
+        std::cout << "\n========== LOL ANALYZER ==========\n";
         std::cout<<"1. Creaza Campion\n";
         std::cout<<"2. Creaza Item\n";
         std::cout<<"3. Alege Campioni pentru jucatori\n";
