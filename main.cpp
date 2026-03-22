@@ -1,5 +1,8 @@
 #include <iostream>
 #include <cstring>
+#include <cmath>
+#include <vector>
+#include <string>
 
 class champion{
     private:
@@ -238,6 +241,155 @@ std::istream& operator >> (std::istream& in, item& obj){
     return in;
 
 }
+
+class matchupCalculator{
+    public:
+        static void predictWinner (const champion& c1, const champion& c2){
+            float hp1 = c1.get_health();
+            float hp2 = c2.get_health();
+
+            float physReduc2= 100.0f / (100.0f + c2.get_armour());
+            float magReduc2 = 100.0f / (100.0f + c2.get_mr());
+
+            float physReduc1= 100.0f / (100.0f + c1.get_armour());
+            float magReduc1= 100.0f / (100.0f +c1.get_mr());
+
+            std::cout << "\n---SIMULARE DUEL---"<< std::endl;
+
+            int rounds =0;
+            while(hp1 >0 && hp2>0 && rounds<100){
+                rounds++;
+
+                float dmg1=c1.get_ad()* physReduc2;
+                if (rounds %3==0){
+                    dmg1 += (c1.get_ap()*1.5f)* magReduc2;
+                }
+                hp2-=dmg1;
+
+                float dmg2=c2.get_ad()* physReduc1;
+                if (rounds %3==0){
+                    dmg2 += (c2.get_ap()*1.5f)* magReduc1;
+                }
+                hp1-=dmg2;
+            }
+            displayResult(c1, c2, hp1, hp2, rounds);
+        }
+    private:
+        static void displayResult(const champion& c1, const champion& c2, float hp1, float hp2, int r){
+            if (hp1 <= 0 && hp2 <=0){
+                std::cout<<"DRAW! Ambii campion au murit in runda "<< r<<"\n";
+            } else if (hp2 <=0){
+                std::cout<<"WINNER! "<<c1.get_name()<<" (HP ramas: "<<std::max(0.0f, hp1)<<")\n";
+                std::cout<<"Runde: "<<r<<std::endl;
+            } else {
+                std::cout<<"WINNER! "<<c2.get_name()<<" (HP ramas: "<<std::max(0.0f, hp2)<<")\n";
+                std::cout<<"Runde: "<<r<<std::endl;
+            }
+        }
+};
+
+
+class player{
+    private:
+        const int id;
+        static int nrInstances;
+
+        char* username;
+        champion selectedChampion;
+        std::vector<item> inventory;
+
+
+    public:
+
+        player();
+        player(const char* name, const champion& champ);
+        player(const player& obj);
+        ~player();
+
+        player& operator=(const player& obj);
+
+        const int get_id() const{return id;}
+        const char* get_username() const {return username;}
+        const champion& get_champion() const {return selectedChampion;}
+        static int get_nrInstances() {return nrInstances;}
+
+        void addItem(const item& it);
+        void set_username(const char* name);
+        champion get_stats_with_items() const;
+
+        friend std::ostream& operator<<(std::ostream& out, const player& obj);
+};
+
+int player::nrInstances=0;
+
+player::player() : id(++nrInstances), selectedChampion(){
+    username=new char[8];
+    strcpy(username, "Guest");
+}
+
+player::player(const char* name, const champion& champ) : id(++nrInstances), selectedChampion(champ){
+    this -> username = new char[strlen(name) +1];
+    strcpy(this -> username, name);
+}
+
+player::player(const player& obj) : id(++nrInstances), selectedChampion(obj.selectedChampion){
+    this -> username = new char [strlen(obj.username)+1];
+    strcpy(this -> username, obj.username);
+    this -> inventory = obj.inventory;
+}
+
+player::~player(){
+    delete[] username;
+}
+
+player& player::operator =(const player& obj){
+    if(this == &obj) return *this;
+
+    delete[] this -> username;
+    this -> username = new char [strlen(obj.username)+1];
+    strcpy(this -> username, obj.username);
+
+    this -> selectedChampion = obj.selectedChampion;
+    this -> inventory = obj.inventory;
+
+    return *this;
+}
+
+void player::addItem(const item& it){
+    if (inventory.size() <6){
+        inventory.push_back(it);
+        std::cout<<"Itemul: "<< it.get_name()<< " a fost adaugat pe "<< username<< ".\n";
+    } else {
+        std::cout<<" Inventory plin!";
+    }
+}
+
+void player::set_username(const char* name){
+    if( this -> username != nullptr) delete[] this -> username;
+    this -> username = new char [strlen(name)+1];
+    strcpy(this -> username, name);
+}
+
+champion player::get_stats_with_items() const{
+    champion temp = selectedChampion;
+
+    for (const auto& it : inventory){
+        temp.set_health(temp.get_health() + it.get_bonusHP());
+        temp.set_armor(temp.get_armour()+ it.get_bonusArmor());
+        temp.set_magicResist(temp.get_mr()+ it.get_bonusMR());
+        temp.set_attackDamage(temp.get_ad()+ it.get_bonusAD());
+        temp.set_abilityPower(temp.get_ap()+ it.get_bonusAP());
+    }
+    return temp;
+}
+
+std::ostream& operator<<(std::ostream& out, const player& obj){
+    out<<"Jucator: "<<obj.username<<" |Champion selectat: "<< obj.selectedChampion.get_name()<<"\n";
+    out<<"Iteme echipate: "<< obj.inventory.size();
+    return out;
+}
+
+
 
 
 int main(){
