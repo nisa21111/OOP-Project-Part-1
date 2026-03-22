@@ -110,6 +110,7 @@ std::istream& operator >>(std::istream& in, champion& obj){
     char buffer[100];
 
     std::cout << "Nume: ";
+    in>>std::ws;
     in.getline(buffer, 100);
     obj.set_name(buffer);
 
@@ -390,10 +391,172 @@ std::ostream& operator<<(std::ostream& out, const player& obj){
 }
 
 
+class menu{
+    private:
+        std::vector<champion> availableChampions;
+        std::vector<item> availableItems;
+        player* p1;
+        player* p2;
+
+        void createChapion();
+        void createItem();
+        void setupPlayer();
+        void managePlayerItems();
+        void startDuel();
+        void displayAvailableChampions();
+        void displayAvailableItems();
+    public:
+        menu();
+        ~menu();
+        void run();
+};
+
+menu::menu(){
+    p1= nullptr;
+    p2= nullptr;
+}
+
+menu::~menu(){
+    delete p1;
+    delete p2;
+}
+
+void menu::createChapion(){
+    champion temp;
+    std::cin>> temp;
+    availableChampions.push_back(temp);
+    std::cout<<"Champion adaugat cu succes!\n";
+}
+
+void menu::createItem(){
+    item temp;
+    std::cin>>temp;
+    availableItems.push_back(temp);
+    std::cout<<"Item adaugat cu succes! \n";
+}
+
+void menu::displayAvailableChampions(){
+    std::cout<<"\n---LISTA CAMPIONI DISPONIBILI---\n";
+    if (availableChampions.empty()){
+        std::cout<<"[GOL] Nu exista campioni creati.\n";
+        return;
+    }
+    for (size_t i = 0; i< availableChampions.size(); i++){
+        std::cout<< i<< ". "<<availableChampions[i].get_name()
+                 << " (HP: "<<availableChampions[i].get_health()<<") \n";
+    }
+}
+
+void menu::displayAvailableItems(){
+    std::cout<<"\n ---LISTA ITEME DISPONIBILE---\n";
+    if(availableItems.empty()){
+        std::cout<<"[GOL] Nu exista iteme create.\n";
+        return;
+    }
+    for (size_t i=0; i< availableItems.size(); i++){
+        std::cout<<i<<". "<<availableItems[i].get_name()<<"\n";
+    }
+}
+
+void menu::setupPlayer(){
+    if(availableChampions.size()<2){
+        std::cout<<"Eroare: Trebuie sa creezi cel putin 2 campioni pentru a continua!\n";
+        return;
+    }
+
+    displayAvailableChampions();
+
+    char name1[50], name2[50];
+    int choice1, choice2;
+
+    std::cout<<"Nume Jucator 1: "; std::cin>>name1;
+    std::cout<<"Alege ID Champion (0 - "<<availableChampions.size()-1<<"): ";
+    std::cin>>choice1;
+
+    std::cout<<"Nume Jucator 2: "; std::cin>>name2;
+    std::cout<<"Alege ID Champion (0 - "<<availableChampions.size()-1<<"): ";
+    std::cin>>choice2;
+
+    if(choice1 <0 || choice1 >= availableChampions.size()|| choice2< 0 || choice2 >= availableChampions.size()){
+        std::cout<<"Index invalid! Reincearca configurarea.\n";
+    }
+
+    delete p1; delete p2;
+    p1=new player(name1, availableChampions[choice1]);
+    p2=new player(name2, availableChampions[choice2]);
+
+    std::cout<<"\nJucatori adaigati cu succes!\n";
+
+}
+
+void menu::managePlayerItems(){
+    if (p1==nullptr || p2==nullptr){
+        std::cout<<"Eroare: Configureaza jucatorii (Optiunea 3) inainte de a pune iteme!\n";
+        return;
+    }
+    if (availableItems.empty()){
+        std::cout<<"Eroare: Nu exista iteme create (Optiunea 2)!\n";
+        return;
+    }
+
+    int playerChoice;
+    std::cout<<"\nCui vrei sa echipezi un itemul?\n1. "<<p1 -> get_username() << "\n2. "<<p2 -> get_username()<<"\nOptiune: ";
+    std::cin>>playerChoice;
+
+    displayAvailableItems();
+
+    int itemIdx;
+    std::cout<< "Alege INDEX item: ";
+    std::cin >> itemIdx;
+
+    if(itemIdx >= 0 && itemIdx < availableItems.size()){
+        if(playerChoice == 1) p1 -> addItem(availableItems[itemIdx]);
+        else if( playerChoice ==2) p2 -> addItem(availableItems[itemIdx]);
+        else std::cout<< "Jucator invalid.\n";
+    }else {
+        std::cout<<"Index item invalid. \n";
+    }
+}
+
+void menu::startDuel(){
+    if (p1==nullptr || p2==nullptr){
+        std::cout<<"Eroare: Jucatorii nu sunt setati!\n";
+        return;
+    }
+    matchupCalculator::predictWinner(p1 -> get_stats_with_items(), p2 -> get_stats_with_items());
+}
+
+void menu::run(){
+    int option =-1;
+    while (option !=0){
+        std::cout<<"\n=== LOL MATCHUP ANALYZER ===\n";
+        std::cout<<"1. Creaza Campion\n";
+        std::cout<<"2. Creaza Item\n";
+        std::cout<<"3. Alege Campioni pentru jucatori\n";
+        std::cout<<"4. Echipare Item\n";
+        std::cout<<"5. --- SIMULEAZA DUEL ---\n";
+        std::cout<<"0. Iesire\n";
+        std::cout<< "===============\n";
+        std::cout<<"Alege: ";
+        std::cin>>option;
+
+        switch (option)
+        {
+            case 1: createChapion(); break;
+            case 2: createItem(); break;
+            case 3: setupPlayer(); break;
+            case 4: managePlayerItems(); break;
+            case 5: startDuel(); break;
+            case 0: std::cout<<"La Revedere!\n"; break;
+            default: std::cout<<"Optiune invalida.\n";
+        }
+    }
+}
 
 
 int main(){
 
-
+    menu app;
+    app.run();
     return 0;
 }
