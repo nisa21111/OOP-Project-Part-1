@@ -486,7 +486,7 @@ void menu::setupPlayer(){
     p1=new player(name1, availableChampions[choice1]);
     p2=new player(name2, availableChampions[choice2]);
 
-    std::cout<<"\nJucatori adaigati cu succes!\n";
+    std::cout<<"\nJucatori adaugati cu succes!\n";
 
 }
 
